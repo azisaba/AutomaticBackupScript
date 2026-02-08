@@ -12,7 +12,6 @@ import net.azisaba.automaticbackupscript.util.use
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.io.FileFilter
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
@@ -173,7 +172,7 @@ class Application {
                     duration =
                         measureTime {
                             result =
-                                file.listFiles(FileFilter { it.isDirectory })!!.all { child ->
+                                file.listFiles { it.isDirectory }!!.all { child ->
                                     try {
                                         command.add(child.absolutePath)
                                         val exitCode =
