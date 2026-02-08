@@ -11,15 +11,21 @@ object ProcessExecutor {
     private val logger = LoggerFactory.getLogger(ProcessExecutor::class.java)!!
     private var streamThreadIndex = 0
 
-    fun executeCommandCaptureOutput(workingDir: File, vararg command: String, logCommand: Boolean = true, mergeStderr: Boolean = false): Result {
+    fun executeCommandCaptureOutput(
+        workingDir: File,
+        vararg command: String,
+        logCommand: Boolean = true,
+        mergeStderr: Boolean = false,
+    ): Result {
         if (logCommand) {
             logger.info("Executing command: ${command.contentToString()}")
         }
-        val proc = ProcessBuilder(*command)
-            .directory(workingDir)
-            .redirectOutput(ProcessBuilder.Redirect.PIPE)
-            .apply { if (mergeStderr) redirectErrorStream(true) }
-            .start()
+        val proc =
+            ProcessBuilder(*command)
+                .directory(workingDir)
+                .redirectOutput(ProcessBuilder.Redirect.PIPE)
+                .apply { if (mergeStderr) redirectErrorStream(true) }
+                .start()
 
         if (!proc.waitFor(60, TimeUnit.MINUTES)) {
             error("Timeout")
@@ -31,16 +37,22 @@ object ProcessExecutor {
         )
     }
 
-    fun executeCommandStreamedOutput(workingDir: File, vararg command: String, logCommand: Boolean = true, mergeStderr: Boolean = false): Int {
+    fun executeCommandStreamedOutput(
+        workingDir: File,
+        vararg command: String,
+        logCommand: Boolean = true,
+        mergeStderr: Boolean = false,
+    ): Int {
         if (logCommand) {
             logger.info("Executing command: ${command.contentToString()}")
         }
-        val proc = ProcessBuilder(*command)
-            .directory(workingDir)
-            .redirectOutput(ProcessBuilder.Redirect.PIPE)
-            .apply { if (mergeStderr) redirectErrorStream(true) }
-            .start()
-            .setupPrinter()
+        val proc =
+            ProcessBuilder(*command)
+                .directory(workingDir)
+                .redirectOutput(ProcessBuilder.Redirect.PIPE)
+                .apply { if (mergeStderr) redirectErrorStream(true) }
+                .start()
+                .setupPrinter()
 
         if (!proc.waitFor(60, TimeUnit.MINUTES)) {
             error("Timeout")
@@ -48,7 +60,10 @@ object ProcessExecutor {
         return proc.exitValue()
     }
 
-    private fun setupPrinter(input: InputStream, log: (String) -> Unit) {
+    private fun setupPrinter(
+        input: InputStream,
+        log: (String) -> Unit,
+    ) {
         Thread({
             InputStreamReader(input).use { isr ->
                 BufferedReader(isr).use { br ->
@@ -67,5 +82,9 @@ object ProcessExecutor {
         return this
     }
 
-    data class Result(val stdout: String, val stderr: String, val exitValue: Int)
+    data class Result(
+        val stdout: String,
+        val stderr: String,
+        val exitValue: Int,
+    )
 }

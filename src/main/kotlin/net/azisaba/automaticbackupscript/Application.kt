@@ -31,15 +31,16 @@ class Application {
     private fun ensureNotLocked(repo: File) = File(repo, "locks").listFiles().isNullOrEmpty()
 
     suspend fun backup() {
-        val duration = measureTime {
-            checkBinaries()
-            forgetHosts()
-            downloadAll()
-            backupAll()
-        }
+        val duration =
+            measureTime {
+                checkBinaries()
+                forgetHosts()
+                downloadAll()
+                backupAll()
+            }
         WebhookUtil.executeWebhook(
             BackupConfig.config.webhookUrl,
-            ":white_check_mark: バックアップが完了しました(${duration.toLocaleString(DurationLocale.JAPANESE)})"
+            ":white_check_mark: バックアップが完了しました(${duration.toLocaleString(DurationLocale.JAPANESE)})",
         )
     }
 
@@ -85,31 +86,35 @@ class Application {
         command.add(info.from)
         command.add(info.to)
         var exitCode: Int
-        val duration = measureTime {
-            exitCode = ProcessExecutor.executeCommandStreamedOutput(File("."), *command.toTypedArray())
-            logger.info("rsync process exited with code $exitCode")
-        }
+        val duration =
+            measureTime {
+                exitCode = ProcessExecutor.executeCommandStreamedOutput(File("."), *command.toTypedArray())
+                logger.info("rsync process exited with code $exitCode")
+            }
         if (exitCode == 0 || exitCode == 23 || exitCode == 24) {
             successfulDownloads.add(info.from)
             successfulDownloads.add(info.to)
             WebhookUtil.executeWebhook(
                 BackupConfig.config.webhookUrl,
-                ":inbox_tray: `${info.webhookName}`のダウンロードが完了(${duration.toLocaleString(DurationLocale.JAPANESE)})"
+                ":inbox_tray: `${info.webhookName}`のダウンロードが完了(${duration.toLocaleString(DurationLocale.JAPANESE)})",
             )
         } else {
             WebhookUtil.executeWebhook(
                 BackupConfig.config.webhookUrl,
-                "${BackupConfig.config.prefixIfWarning}`${info.webhookName}`のダウンロードに失敗しました(${duration.toLocaleString(DurationLocale.JAPANESE)}) [$exitCode]"
+                "${BackupConfig.config.prefixIfWarning}`${info.webhookName}`のダウンロードに失敗しました(${duration.toLocaleString(
+                    DurationLocale.JAPANESE,
+                )}) [$exitCode]",
             )
         }
     }
 
     private suspend fun backupAll() {
-        val duration = measureTime {
-            BackupConfig.config.backups.forEach { info ->
-                backup(info)
+        val duration =
+            measureTime {
+                BackupConfig.config.backups.forEach { info ->
+                    backup(info)
+                }
             }
-        }
         logger.info("Backup completed in ${duration.toLocaleString(DurationLocale.ENGLISH)}")
     }
 
@@ -117,16 +122,17 @@ class Application {
         if (!ensureNotLocked(File(info.repo))) {
             WebhookUtil.executeWebhook(
                 BackupConfig.config.webhookUrl,
-                ":warning: `${info.webhookName}`のリポジトリは他のプロセスによってロックされているためバックアップは作成されません。"
+                ":warning: `${info.webhookName}`のリポジトリは他のプロセスによってロックされているためバックアップは作成されません。",
             )
             return
         }
         val effectiveDepends = info.depend.filter { !it.startsWith("#") }
-        if ((info.dependOp == DependOp.OR && !effectiveDepends.any { successfulDownloads.contains(it) })
-            || (info.dependOp == DependOp.AND && !effectiveDepends.all { successfulDownloads.contains(it) })) {
+        if ((info.dependOp == DependOp.OR && !effectiveDepends.any { successfulDownloads.contains(it) }) ||
+            (info.dependOp == DependOp.AND && !effectiveDepends.all { successfulDownloads.contains(it) })
+        ) {
             WebhookUtil.executeWebhook(
                 BackupConfig.config.webhookUrl,
-                ":warning: `${info.webhookName}`はデータのダウンロードに失敗しているためバックアップは作成されません。"
+                ":warning: `${info.webhookName}`はデータのダウンロードに失敗しているためバックアップは作成されません。",
             )
             return
         }
@@ -145,56 +151,62 @@ class Application {
             command.add("backup")
             val file = File(info.path)
             val duration: Duration
-            val success = if (info.backupChildDirectoriesOnly) {
-                if (!file.exists()) {
-                    logger.warn("${info.path} does not exist")
-                    WebhookUtil.executeWebhook(
-                        BackupConfig.config.webhookUrl,
-                        "${BackupConfig.config.prefixIfWarning}`${info.webhookName}`のバックアップに失敗しました(`${info.path}`が見つかりません)"
-                    )
-                    return
-                }
-                if (!file.isDirectory) {
-                    logger.warn("${info.path} is not a directory")
-                    WebhookUtil.executeWebhook(
-                        BackupConfig.config.webhookUrl,
-                        "${BackupConfig.config.prefixIfWarning}`${info.webhookName}`のバックアップに失敗しました(`${info.path}`はディレクトリではありません)"
-                    )
-                    return
-                }
-                val result: Boolean
-                duration = measureTime {
-                    result = file.listFiles(FileFilter { it.isDirectory })!!.all { child ->
-                        try {
-                            command.add(child.absolutePath)
-                            val exitCode =
-                                ProcessExecutor.executeCommandStreamedOutput(File("."), *command.toTypedArray())
-                            logger.info("restic process exited with code $exitCode")
-                            return@all exitCode == 0
-                        } finally {
-                            command.removeLast()
-                        }
+            val success =
+                if (info.backupChildDirectoriesOnly) {
+                    if (!file.exists()) {
+                        logger.warn("${info.path} does not exist")
+                        WebhookUtil.executeWebhook(
+                            BackupConfig.config.webhookUrl,
+                            "${BackupConfig.config.prefixIfWarning}`${info.webhookName}`のバックアップに失敗しました(`${info.path}`が見つかりません)",
+                        )
+                        return
                     }
+                    if (!file.isDirectory) {
+                        logger.warn("${info.path} is not a directory")
+                        WebhookUtil.executeWebhook(
+                            BackupConfig.config.webhookUrl,
+                            "${BackupConfig.config.prefixIfWarning}`${info.webhookName}`のバックアップに失敗しました(`${info.path}`はディレクトリではありません)",
+                        )
+                        return
+                    }
+                    val result: Boolean
+                    duration =
+                        measureTime {
+                            result =
+                                file.listFiles(FileFilter { it.isDirectory })!!.all { child ->
+                                    try {
+                                        command.add(child.absolutePath)
+                                        val exitCode =
+                                            ProcessExecutor.executeCommandStreamedOutput(File("."), *command.toTypedArray())
+                                        logger.info("restic process exited with code $exitCode")
+                                        return@all exitCode == 0
+                                    } finally {
+                                        command.removeLast()
+                                    }
+                                }
+                        }
+                    result
+                } else {
+                    command.add(file.absolutePath)
+                    val exitCode: Int
+                    duration =
+                        measureTime {
+                            exitCode = ProcessExecutor.executeCommandStreamedOutput(File("."), *command.toTypedArray())
+                        }
+                    logger.info("restic process exited with code $exitCode")
+                    exitCode == 0
                 }
-                result
-            } else {
-                command.add(file.absolutePath)
-                val exitCode: Int
-                duration = measureTime {
-                    exitCode = ProcessExecutor.executeCommandStreamedOutput(File("."), *command.toTypedArray())
-                }
-                logger.info("restic process exited with code $exitCode")
-                exitCode == 0
-            }
             if (success) {
                 WebhookUtil.executeWebhook(
                     BackupConfig.config.webhookUrl,
-                    ":pencil: `${info.webhookName}`のバックアップが完了(${duration.toLocaleString(DurationLocale.JAPANESE)})"
+                    ":pencil: `${info.webhookName}`のバックアップが完了(${duration.toLocaleString(DurationLocale.JAPANESE)})",
                 )
             } else {
                 WebhookUtil.executeWebhook(
                     BackupConfig.config.webhookUrl,
-                    "${BackupConfig.config.prefixIfWarning}`${info.webhookName}`のバックアップに失敗しました(${duration.toLocaleString(DurationLocale.JAPANESE)})"
+                    "${BackupConfig.config.prefixIfWarning}`${info.webhookName}`のバックアップに失敗しました(${duration.toLocaleString(
+                        DurationLocale.JAPANESE,
+                    )})",
                 )
             }
         }
@@ -204,7 +216,10 @@ class Application {
         BackupConfig.config.forgetHosts.forEach { forgetHost(it, BackupConfig.config.knownHostsFile) }
     }
 
-    private fun forgetHost(host: String, file: String?) {
+    private fun forgetHost(
+        host: String,
+        file: String?,
+    ) {
         val command = mutableListOf<String>()
         if (BackupConfig.config.runAsSudo) {
             command.add("sudo")

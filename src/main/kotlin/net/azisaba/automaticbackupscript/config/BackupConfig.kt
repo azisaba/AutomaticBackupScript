@@ -12,21 +12,23 @@ data class BackupConfig(
     val knownHostsFile: String? = null,
     val forgetHosts: List<String> = listOf("[github.com]:22"),
     val binaries: BinariesInfo = BinariesInfo(),
-    val downloads: List<DownloadInfo> = listOf(
-        DownloadInfo("server:/tmp/exampleA", "server:/tmp/exampleA", "/tmp/exampleB")
-    ),
-    val backups: List<BackupInfo> = listOf(
-        BackupInfo("server:/tmp/exampleA", "/mnt/backup", "plain-password", "/tmp/exampleB", false, 1)
-    )
+    val downloads: List<DownloadInfo> =
+        listOf(
+            DownloadInfo("server:/tmp/exampleA", "server:/tmp/exampleA", "/tmp/exampleB"),
+        ),
+    val backups: List<BackupInfo> =
+        listOf(
+            BackupInfo("server:/tmp/exampleA", "/mnt/backup", "plain-password", "/tmp/exampleB", false, 1),
+        ),
 ) {
     companion object {
         lateinit var config: BackupConfig
 
         fun load(file: File) {
             if (!file.parentFile.exists()) file.parentFile.mkdirs()
-            if (!file.exists()) file.writeText(CoreConfig.json.encodeToString(BackupConfig()))
-            config = CoreConfig.json.decodeFromString(serializer(), file.readText())
-            file.writeText(CoreConfig.json.encodeToString(config))
+            if (!file.exists()) file.writeText(CoreConfig.toml.encodeToString(BackupConfig()))
+            config = CoreConfig.toml.decodeFromString(serializer(), file.readText())
+            file.writeText(CoreConfig.toml.encodeToString(config))
         }
     }
 }
@@ -64,5 +66,6 @@ data class BackupInfo(
 )
 
 enum class DependOp {
-    OR, AND
+    OR,
+    AND,
 }
