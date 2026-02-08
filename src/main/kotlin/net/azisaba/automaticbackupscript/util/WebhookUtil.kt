@@ -11,13 +11,19 @@ import kotlinx.serialization.json.Json
 object WebhookUtil {
     private val client = HttpClient(CIO)
 
-    suspend fun executeWebhook(url: String, content: String, username: String? = null) =
-        client.post(url) {
-            setBody(Json.encodeToString(MessageBody(content, username)))
-            header("User-Agent", "https://github.com/acrylic-style/AutomaticBackupScript / 1.x")
-            contentType(ContentType.parse("application/json"))
-        }
+    suspend fun executeWebhook(
+        url: String,
+        content: String,
+        username: String? = null,
+    ) = client.post(url) {
+        setBody(Json.encodeToString(MessageBody(content, username)))
+        header("User-Agent", "https://github.com/azisaba/AutomaticBackupScript / 1.x")
+        contentType(ContentType.parse("application/json"))
+    }
 }
 
 @Serializable
-data class MessageBody(val content: String, val username: String?)
+data class MessageBody(
+    val content: String,
+    val username: String?,
+)
