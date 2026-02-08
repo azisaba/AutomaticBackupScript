@@ -6,8 +6,6 @@ import com.akuleshov7.ktoml.TomlInputConfig
 import com.akuleshov7.ktoml.TomlOutputConfig
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import net.azisaba.automaticbackupscript.Main
 import net.azisaba.automaticbackupscript.util.ProcessExecutor
 import java.io.File
 
@@ -32,13 +30,6 @@ data class CoreConfig(
                         indentation = TomlIndentation.NONE,
                     ),
             )
-
-        val config: CoreConfig =
-            File(Main.configFile).let { file ->
-                if (!file.parentFile.exists()) file.parentFile.mkdirs()
-                if (!file.exists()) file.writeText(toml.encodeToString(CoreConfig()))
-                toml.decodeFromString(serializer(), file.readText())
-            }
     }
 
     fun executePreExecuteScript() {
