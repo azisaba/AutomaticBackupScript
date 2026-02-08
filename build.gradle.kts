@@ -29,6 +29,7 @@ tasks {
         manifest {
             attributes(mapOf("Main-Class" to "net.azisaba.automaticbackupscript.Main"))
         }
+        archiveFileName.set("AutomaticBackupScript.jar")
     }
 }
 
