@@ -12,7 +12,7 @@ import java.io.File
 
 @OptIn(ExperimentalCli::class)
 object BackupCommand : Subcommand("backup", "Backup files") {
-    private val configPath by option(ArgType.String, "config-file", "f", "Configuration file").default("config/backup.json")
+    private val configPath by option(ArgType.String, "config-file", "f", "Configuration file").default("config/backup.toml")
 
     override fun execute() {
         CoreConfig.config.executePreExecuteScript()

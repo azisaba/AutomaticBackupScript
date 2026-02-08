@@ -5,6 +5,7 @@ import kotlinx.cli.ArgType
 import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.default
 import net.azisaba.automaticbackupscript.command.BackupCommand
+import net.azisaba.automaticbackupscript.command.MigrateCommand
 
 object Main {
     init {
@@ -17,7 +18,10 @@ object Main {
     @OptIn(ExperimentalCli::class)
     @JvmStatic
     fun main(args: Array<String>) {
-        parser.subcommands(BackupCommand)
+        parser.subcommands(
+            BackupCommand,
+            MigrateCommand,
+        )
         parser.parse(args)
     }
 }
